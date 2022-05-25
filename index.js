@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+// *
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
@@ -24,6 +26,25 @@ async function run() {
 
     const reviewCollection = client.db('colors_paint').collection('reviews');
 
+    const userCollection = client.db('colors_paint').collection('users');
+
+    const orderCollection = client.db('colors_paint').collection('orders');
+
+    // store user *
+    app.put('/user/:email', async(req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const filter = {email: email};
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: user,
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      const token = jwt.sign({email: email}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'})
+      res.send({result, token});
+
+    })
+
     // get all tools
     app.get('/tool', async (req, res) => {
       const query = {};
@@ -40,13 +61,28 @@ async function run() {
       res.send(tool);
     });
 
-    // post a review
-    app.post('/review', async(req,res) => {
+    // post a review 
+    app.post('/reviews', async(req,res) => {
       const review = req.body;
       const result = await reviewCollection.insertOne(review);
       res.send(result);
 
+    });
+
+    // get all reviews *
+    app.get('/seereview', async(req, res) => {
+      const query = {};
+      const cursor = reviewCollection.find(query)
+      const review = await cursor.toArray();
+      res.send(review);
     })
+
+    // post order in database
+    app.post('/orders', async (req, res) => {
+      const order = req.body;
+      const result = await orderCollection.insertOne(order);
+      res.send(result);
+    });
 
   }
 
