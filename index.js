@@ -46,21 +46,37 @@ async function run() {
     const orderCollection = client.db('colors_paint').collection('orders');
 
     // get all users
-    app.get('/user', varifyJWT,  async(req, res) => {
+    app.get('/user', varifyJWT, async (req, res) => {
       const users = await userCollection.find().toArray();
       res.send(users)
+    });
+
+    // get use to check admin
+    app.get('/admin/:email', async(req, res) => {
+      const email = req.params.email;
+      const user = await userCollection.findOne({email: email});
+      const isAdmin = user.role === 'admin';
+      res.send({admin: isAdmin});
     })
 
     // make admin
     app.put('/user/admin/:email', varifyJWT, async (req, res) => {
       const email = req.params.email;
-      const filter = { email: email };
-      const updateDoc = {
-        $set: {role: 'admin'},
-      };
-      const result = await userCollection.updateOne(filter, updateDoc);
-      
-      res.send(result);
+      const requester = req.decoded.email;
+      const requesterAccount = await userCollection.findOne({ email: requester });
+      if (requesterAccount.role === 'admin') {
+        const filter = { email: email };
+        const updateDoc = {
+          $set: { role: 'admin' },
+        };
+        const result = await userCollection.updateOne(filter, updateDoc);
+
+        res.send(result);
+      }
+      else{
+        res.status(403).send({message: 'forbidden'})
+      }
+
     })
 
     // store user *
@@ -125,8 +141,8 @@ async function run() {
         const orders = await orderCollection.find(query).toArray();
         return res.send(orders);
       }
-      else{
-        return res.status(403).send({message: 'Forbidden access'});
+      else {
+        return res.status(403).send({ message: 'Forbidden access' });
       }
 
     })
