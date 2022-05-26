@@ -45,6 +45,8 @@ async function run() {
 
     const orderCollection = client.db('colors_paint').collection('orders');
 
+    const productCollection = client.db('colors_paint').collection('tools');
+
     // get all users
     app.get('/user', varifyJWT, async (req, res) => {
       const users = await userCollection.find().toArray();
@@ -101,6 +103,20 @@ async function run() {
       res.send(tools);
     });
 
+    // get tools after insert new tools ***********
+    app.get('/products', async (req, res) => {
+
+      const query = {};
+      const cursor = productCollection.find(query)
+      //   .project({ name: 1 });
+      const products = await cursor.toArray();
+      products.reverse();
+      res.send(products);
+    });
+
+
+
+
     // get a tool with id
     app.get('/tool/:id', async (req, res) => {
       const id = req.params.id;
@@ -144,8 +160,14 @@ async function run() {
       else {
         return res.status(403).send({ message: 'Forbidden access' });
       }
+    });
 
-    })
+    // post new product in database
+    app.post('/products', async (req, res) => {
+      const order = req.body;
+      const result = await productCollection.insertOne(order);
+      res.send(result);
+    });
 
   }
 
