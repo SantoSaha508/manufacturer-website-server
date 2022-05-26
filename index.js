@@ -162,6 +162,16 @@ async function run() {
       }
     });
 
+
+    // delete order
+    // post order in database
+    app.delete('/orders/:email', async (req, res) => {
+      const email = req.params.email;
+      const filter = {email: email};
+      const result = await orderCollection.deleteOne(filter);
+      res.send(result);
+    });
+
     // post new product in database
     app.post('/products', async (req, res) => {
       const order = req.body;
