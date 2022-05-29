@@ -53,6 +53,14 @@ async function run() {
       res.send(users)
     });
 
+    // get single user
+    app.get('/user/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = {email: email};
+      const user = await userCollection.findOne(query);
+      res.send(user);
+    })
+
     // get use to check admin
     app.get('/admin/:email', async(req, res) => {
       const email = req.params.email;
@@ -100,6 +108,7 @@ async function run() {
       const query = {};
       const cursor = toolsCollection.find(query);
       const tools = await cursor.toArray();
+      tools.reverse();
       res.send(tools);
     });
 
@@ -185,6 +194,14 @@ async function run() {
       const order = await orderCollection.findOne(query);
       res.send(order);
 
+    })
+
+    // delete product
+    app.delete('/tool/:id',  async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await productCollection.deleteOne(query);
+      res.send(result);
     })
 
   }
