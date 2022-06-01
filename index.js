@@ -48,7 +48,7 @@ async function run() {
     const productCollection = client.db('colors_paint').collection('tools');
 
     // get all users
-    app.get('/user', varifyJWT, async (req, res) => {
+    app.get('/users', varifyJWT, async (req, res) => {
       const users = await userCollection.find().toArray();
       res.send(users)
     });
